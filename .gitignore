@@ -24,6 +24,14 @@ wheels/
 venv/
 env/
 ENV/
+.venv/
+.env/
+.python-version
+
+# Poetry
+poetry.lock
+.poetry/
+dist/
 
 # IDE
 .idea/
