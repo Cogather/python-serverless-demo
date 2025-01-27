@@ -21,6 +21,9 @@ wheels/
 *.egg
 get-pip.py
 
+# CI Scripts
+.ci/
+
 # Virtual Environment
 venv/
 env/
@@ -30,7 +33,6 @@ ENV/
 .python-version
 
 # Poetry
-poetry.lock
 .poetry/
 dist/
 
