@@ -1,6 +1,6 @@
 """计算器模块的测试用例"""
 import pytest
-from calculator import add, subtract, multiply, divide, power
+from calculator import add, subtract, multiply, divide, sqrt
 
 
 def test_add():
@@ -37,9 +37,14 @@ def test_divide_by_zero():
         divide(1, 0)
 
 
-def test_power():
-    """测试幂运算函数"""
-    assert power(2, 3) == 8
-    assert power(3, 2) == 9
-    assert power(5, 0) == 1
-    assert power(2, -1) == 0.5
+def test_sqrt():
+    """测试平方根函数"""
+    assert sqrt(4) == 2
+    assert sqrt(0) == 0
+    assert sqrt(2) == 2**0.5
+
+
+def test_sqrt_negative():
+    """测试计算负数平方根的情况"""
+    with pytest.raises(ValueError):
+        sqrt(-1)
