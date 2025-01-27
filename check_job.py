@@ -1,7 +1,11 @@
 import requests
 import json
+import os
 
-token = "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"
+token = os.getenv("GITHUB_TOKEN")
+if not token:
+    raise ValueError("GITHUB_TOKEN environment variable is not set")
+
 headers = {
     "Authorization": f"Bearer {token}",
     "Accept": "application/vnd.github.v3+json",
