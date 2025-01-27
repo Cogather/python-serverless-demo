@@ -19,6 +19,7 @@ wheels/
 *.egg-info/
 .installed.cfg
 *.egg
+get-pip.py
 
 # Virtual Environment
 venv/
