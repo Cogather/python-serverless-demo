@@ -2,7 +2,7 @@ name: Python CI
 
 on:
   push:
-    branches: [ main, feature/add-sqrt-function ]
+    branches: [ main ]
   pull_request:
     branches: [ main ]
 
@@ -46,8 +46,8 @@ jobs:
     
     - name: Lint with flake8
       run: |
-        poetry run flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics --ignore=E402
-        poetry run flake8 . --count --exit-zero --ignore=E402 --max-complexity=10 --max-line-length=88 --statistics
+        poetry run flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics --ignore=E402 --exclude=.venv,venv,env
+        poetry run flake8 . --count --exit-zero --ignore=E402 --max-complexity=10 --max-line-length=88 --statistics --exclude=.venv,venv,env
     
     - name: Run tests with pytest
       run: |
