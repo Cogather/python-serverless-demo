@@ -15,9 +15,7 @@ logger = Logger()
 
 
 @logger.inject_lambda_context
-def lambda_handler(
-    event: Dict[str, Any], context: LambdaContext
-) -> Dict[str, Any]:
+def lambda_handler(event: Dict[str, Any], context: LambdaContext) -> Dict[str, Any]:
     """
     AWS Lambda处理函数，用于处理API Gateway的请求。
 
