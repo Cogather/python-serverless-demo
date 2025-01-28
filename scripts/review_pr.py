@@ -16,13 +16,14 @@ import requests
 def load_config() -> Dict[str, Any]:
     """加载配置文件"""
     config_path = os.path.join(
-        os.path.dirname(os.path.dirname(__file__)), "config.local.json"
+        os.path.dirname(os.path.dirname(__file__)),
+        "config.local.json"
     )
     try:
         with open(config_path, "r", encoding="utf-8") as f:
             return json.load(f)
     except FileNotFoundError:
-        print(f"错误: 未找到配置文件 {config_path}")
+        print("错误: 未找到配置文件 %s", config_path)
         sys.exit(1)
 
 
@@ -53,11 +54,14 @@ def get_pr_info(config: Dict[str, Any]) -> Dict[str, Any]:
             if pr["head"]["ref"] == current_branch:
                 return pr
 
-        print(f"错误: 未找到分支 {current_branch} 的 PR")
+        print("错误: 未找到分支 %s 的 PR", current_branch)
         sys.exit(1)
 
-    except Exception as e:
-        print(f"错误: 获取 PR 信息失败 - {str(e)}")
+    except (IOError, OSError) as e:
+        print("错误: 无法读取.git/HEAD文件 - %s", str(e))
+        sys.exit(1)
+    except requests.exceptions.RequestException as e:
+        print("错误: 获取 PR 信息失败 - %s", str(e))
         sys.exit(1)
 
 
@@ -65,7 +69,9 @@ def get_pr_files(config: Dict[str, Any], pr_number: int) -> List[Dict[str, Any]]
     """获取 PR 中的文件变更"""
     token = config["github"]["token"]
     repo = config["github"]["repository"]
-    api_url = f"https://api.github.com/repos/{repo}/pulls/{pr_number}/files"
+    api_url = (
+        f"https://api.github.com/repos/{repo}/pulls/{pr_number}/files"
+    )
 
     headers = {
         "Authorization": f"Bearer {token}",
@@ -76,8 +82,8 @@ def get_pr_files(config: Dict[str, Any], pr_number: int) -> List[Dict[str, Any]]
         response = requests.get(api_url, headers=headers)
         response.raise_for_status()
         return response.json()
-    except Exception as e:
-        print(f"错误: 获取文件变更失败 - {str(e)}")
+    except requests.exceptions.RequestException as e:
+        print("错误: 获取文件变更失败 - %s", str(e))
         sys.exit(1)
 
 
@@ -102,50 +108,42 @@ def parse_patch(patch: str) -> List[Dict[str, Any]]:
         # 记录变更的行
         elif current_section is not None:
             if line.startswith("+"):
-                current_section["lines"].append(
-                    {
-                        "type": "add",
-                        "content": line[1:],
-                        "line_number": current_section["new_start"]
-                        + len(
-                            [
-                                l
-                                for l in current_section["lines"]
-                                if l["type"] in ("add", "context")
-                            ]
-                        ),
-                    }
-                )
+                added_lines = len([
+                    line_info
+                    for line_info in current_section["lines"]
+                    if line_info["type"] in ("add", "context")
+                ])
+                current_section["lines"].append({
+                    "type": "add",
+                    "content": line[1:],
+                    "line_number": current_section["new_start"] + added_lines,
+                })
             elif line.startswith("-"):
-                current_section["lines"].append(
-                    {
-                        "type": "remove",
-                        "content": line[1:],
-                        "line_number": current_section["old_start"]
-                        + len(
-                            [
-                                l
-                                for l in current_section["lines"]
-                                if l["type"] in ("remove", "context")
-                            ]
-                        ),
-                    }
-                )
+                removed_lines = len([
+                    line_info
+                    for line_info in current_section["lines"]
+                    if line_info["type"] in ("remove", "context")
+                ])
+                current_section["lines"].append({
+                    "type": "remove",
+                    "content": line[1:],
+                    "line_number": (
+                        current_section["old_start"] + removed_lines
+                    ),
+                })
             else:
-                current_section["lines"].append(
-                    {
-                        "type": "context",
-                        "content": line,
-                        "line_number": current_section["new_start"]
-                        + len(
-                            [
-                                l
-                                for l in current_section["lines"]
-                                if l["type"] in ("add", "context")
-                            ]
-                        ),
-                    }
-                )
+                context_lines = len([
+                    line_info
+                    for line_info in current_section["lines"]
+                    if line_info["type"] in ("add", "context")
+                ])
+                current_section["lines"].append({
+                    "type": "context",
+                    "content": line,
+                    "line_number": (
+                        current_section["new_start"] + context_lines
+                    ),
+                })
 
     return changes
 
@@ -156,7 +154,9 @@ def get_existing_reviews(
     """获取PR已有的检视意见"""
     token = config["github"]["token"]
     repo = config["github"]["repository"]
-    api_url = f"https://api.github.com/repos/{repo}/pulls/{pr_number}/reviews"
+    api_url = (
+        f"https://api.github.com/repos/{repo}/pulls/{pr_number}/reviews"
+    )
 
     headers = {
         "Authorization": f"Bearer {token}",
@@ -172,14 +172,19 @@ def get_existing_reviews(
         existing_comments = []
         for review in reviews:
             if review.get("state") != "DISMISSED":  # 忽略已被驳回的检视意见
-                comments_url = f"https://api.github.com/repos/{repo}/pulls/{pr_number}/reviews/{review['id']}/comments"
-                comments_response = requests.get(comments_url, headers=headers)
+                comments_url = (
+                    f"https://api.github.com/repos/{repo}/pulls/"
+                    f"{pr_number}/reviews/{review['id']}/comments"
+                )
+                comments_response = requests.get(
+                    comments_url, headers=headers
+                )
                 comments_response.raise_for_status()
                 existing_comments.extend(comments_response.json())
 
         return existing_comments
-    except Exception as e:
-        print(f"警告: 获取现有检视意见失败 - {str(e)}")
+    except requests.exceptions.RequestException as e:
+        print("警告: 获取现有检视意见失败 - %s", str(e))
         return []
 
 
@@ -219,7 +224,9 @@ def is_similar_comment(
 
 
 def review_code(
-    config: Dict[str, Any], pr_data: Dict[str, Any], files: List[Dict[str, Any]]
+    config: Dict[str, Any],
+    pr_data: Dict[str, Any],
+    files: List[Dict[str, Any]]
 ) -> List[Dict[str, Any]]:
     """执行代码审查"""
     comments = []
@@ -234,11 +241,18 @@ def review_code(
             for section in changes:
                 for line in section["lines"]:
                     # 检查错误处理
-                    if "except" in line["content"] and "Exception" in line["content"]:
+                    if (
+                        "except" in line["content"]
+                        and "Exception" in line["content"]
+                    ):
                         new_comment = {
                             "path": filename,
                             "line": line["line_number"],
-                            "body": "建议将异常处理分得更细致，分别处理 `requests.exceptions.RequestException` 和其他可能的异常。",
+                            "body": (
+                                "建议将异常处理分得更细致，分别处理 "
+                                "`requests.exceptions.RequestException` "
+                                "和其他可能的异常。"
+                            ),
                         }
                         if not any(
                             is_similar_comment(new_comment, existing)

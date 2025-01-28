@@ -14,13 +14,14 @@ import requests
 def load_config():
     """加载本地配置文件"""
     config_path = os.path.join(
-        os.path.dirname(os.path.dirname(__file__)), "config.local.json"
+        os.path.dirname(os.path.dirname(__file__)),
+        "config.local.json"
     )
     try:
         with open(config_path, "r", encoding="utf-8") as f:
             return json.load(f)
     except FileNotFoundError:
-        print(f"错误: 未找到配置文件 {config_path}")
+        print("错误: 未找到配置文件 %s", config_path)
         sys.exit(1)
 
 
@@ -31,8 +32,12 @@ def get_current_branch():
             ref = f.read().strip()
             if ref.startswith("ref: refs/heads/"):
                 return ref[16:]
-    except:
-        print("错误: 无法获取当前分支名称")
+            raise ValueError("无效的HEAD引用格式")
+    except (IOError, OSError) as e:
+        print("错误: 无法读取.git/HEAD文件: %s", str(e))
+        sys.exit(1)
+    except ValueError as e:
+        print("错误: %s", str(e))
         sys.exit(1)
 
 
@@ -51,7 +56,7 @@ def create_pull_request(config):
     }
 
     data = {
-        "title": f"代码重构: 优化项目结构 ({current_time})",
+        "title": "代码重构: 优化项目结构 (%s)" % current_time,
         "body": """
 ## 更新内容
 
@@ -85,27 +90,30 @@ def create_pull_request(config):
         "maintainer_can_modify": True,
     }
 
-    print(f"当前分支: {current_branch}")
-    print(f"API URL: {api_url}")
-    print("请求头:", json.dumps(headers, indent=2))
-    print("请求数据:", json.dumps(data, indent=2))
+    print("当前分支: %s", current_branch)
+    print("API URL: %s", api_url)
+    print("请求头: %s", json.dumps(headers, indent=2))
+    print("请求数据: %s", json.dumps(data, indent=2))
 
     try:
         response = requests.post(api_url, headers=headers, json=data)
         response.raise_for_status()
         pr_data = response.json()
-        print(f"Pull Request 创建成功！")
-        print(f"URL: {pr_data['html_url']}")
+        print("Pull Request 创建成功！")
+        print("URL: %s", pr_data["html_url"])
     except requests.exceptions.RequestException as e:
-        print(f"错误: 创建Pull Request失败")
-        print(f"详细信息: {str(e)}")
+        print("错误: 创建Pull Request失败")
+        print("详细信息: %s", str(e))
         if hasattr(e, "response") and e.response is not None:
-            print(f"状态码: {e.response.status_code}")
-            print(f"响应头: {json.dumps(dict(e.response.headers), indent=2)}")
+            print("状态码: %d", e.response.status_code)
+            print("响应头: %s", json.dumps(dict(e.response.headers), indent=2))
             try:
-                print(f"响应内容: {json.dumps(e.response.json(), indent=2)}")
-            except:
-                print(f"响应内容: {e.response.text}")
+                print(
+                    "响应内容: %s",
+                    json.dumps(e.response.json(), indent=2)
+                )
+            except json.JSONDecodeError:
+                print("响应内容: %s", e.response.text)
         sys.exit(1)
 
 

@@ -7,11 +7,16 @@ import json
 import os
 import sys
 import logging
-from datetime import datetime, timezone, timedelta
+from datetime import datetime, timezone
 from typing import Dict, Any
 
 import requests
-from requests.exceptions import RequestException, HTTPError, ConnectionError, Timeout
+from requests.exceptions import (
+    RequestException,
+    HTTPError,
+    ConnectionError,
+    Timeout,
+)
 
 # 配置日志
 logging.basicConfig(
@@ -25,16 +30,17 @@ logger = logging.getLogger(__name__)
 def load_config() -> Dict[str, Any]:
     """加载本地配置文件"""
     config_path = os.path.join(
-        os.path.dirname(os.path.dirname(__file__)), "config.local.json"
+        os.path.dirname(os.path.dirname(__file__)),
+        "config.local.json"
     )
     try:
         with open(config_path, "r", encoding="utf-8") as f:
             return json.load(f)
     except FileNotFoundError:
-        logger.error(f"配置文件未找到: {config_path}")
+        logger.error("配置文件未找到: %s", config_path)
         sys.exit(1)
     except json.JSONDecodeError as e:
-        logger.error(f"配置文件格式错误: {str(e)}")
+        logger.error("配置文件格式错误: %s", str(e))
         sys.exit(1)
 
 
@@ -68,14 +74,14 @@ def get_latest_workflow_run(config: Dict[str, Any]) -> int:
         logger.error("网络连接错误，请检查网络状态")
         sys.exit(1)
     except HTTPError as e:
-        logger.error(f"HTTP请求失败 (状态码: {e.response.status_code})")
-        logger.debug(f"响应内容: {e.response.text}")
+        logger.error("HTTP请求失败 (状态码: %d)", e.response.status_code)
+        logger.debug("响应内容: %s", e.response.text)
         sys.exit(1)
     except RequestException as e:
-        logger.error(f"请求异常: {str(e)}")
+        logger.error("请求异常: %s", str(e))
         sys.exit(1)
     except Exception as e:
-        logger.error(f"未预期的错误: {str(e)}")
+        logger.error("未预期的错误: %s", str(e))
         sys.exit(1)
 
 
@@ -83,7 +89,9 @@ def get_workflow_jobs(config: Dict[str, Any], run_id: int) -> Dict[str, Any]:
     """获取工作流作业的详细信息"""
     token = config["github"]["token"]
     repo = config["github"]["repository"]
-    api_url = f"https://api.github.com/repos/{repo}/actions/runs/{run_id}/jobs"
+    api_url = (
+        f"https://api.github.com/repos/{repo}/actions/runs/{run_id}/jobs"
+    )
 
     headers = {
         "Authorization": f"Bearer {token}",
@@ -102,14 +110,14 @@ def get_workflow_jobs(config: Dict[str, Any], run_id: int) -> Dict[str, Any]:
         logger.error("网络连接错误，请检查网络状态")
         sys.exit(1)
     except HTTPError as e:
-        logger.error(f"HTTP请求失败 (状态码: {e.response.status_code})")
-        logger.debug(f"响应内容: {e.response.text}")
+        logger.error("HTTP请求失败 (状态码: %d)", e.response.status_code)
+        logger.debug("响应内容: %s", e.response.text)
         sys.exit(1)
     except RequestException as e:
-        logger.error(f"请求异常: {str(e)}")
+        logger.error("请求异常: %s", str(e))
         sys.exit(1)
     except Exception as e:
-        logger.error(f"未预期的错误: {str(e)}")
+        logger.error("未预期的错误: %s", str(e))
         sys.exit(1)
 
 
@@ -121,7 +129,7 @@ def format_time(time_str: str) -> str:
         local_dt = dt.astimezone()
         return local_dt.strftime("%Y-%m-%d %H:%M:%S")
     except ValueError as e:
-        logger.warning(f"时间格式化失败: {str(e)}")
+        logger.warning("时间格式化失败: %s", str(e))
         return time_str
 
 
@@ -164,5 +172,5 @@ if __name__ == "__main__":
         logger.info("\n操作已取消")
         sys.exit(0)
     except Exception as e:
-        logger.error(f"程序执行出错: {str(e)}")
+        logger.error("程序执行出错: %s", str(e))
         sys.exit(1)
