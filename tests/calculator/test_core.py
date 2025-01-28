@@ -112,14 +112,10 @@ def test_performance_sqrt(benchmark):
     benchmark(run_sqrt)
 
 
-@pytest.mark.benchmark(
-    group="calculator",
-    min_rounds=100,
-    disable_gc=True,
-    warmup=True
-)
+@pytest.mark.benchmark(group="calculator", min_rounds=100, disable_gc=True, warmup=True)
 def test_performance_operations(benchmark):
     """测试基本运算的性能"""
+
     def run_operations():
         for i in range(1000):
             add(i, i)
@@ -127,6 +123,6 @@ def test_performance_operations(benchmark):
             multiply(i, i)
             if i != 0:
                 divide(i, i)
-    
+
     # 执行基准测试
     benchmark(run_operations)

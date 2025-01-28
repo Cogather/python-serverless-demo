@@ -16,16 +16,19 @@ from requests.exceptions import RequestException, HTTPError, ConnectionError, Ti
 # 配置日志
 logging.basicConfig(
     level=logging.INFO,
-    format='%(asctime)s - %(levelname)s - %(message)s',
-    datefmt='%Y-%m-%d %H:%M:%S'
+    format="%(asctime)s - %(levelname)s - %(message)s",
+    datefmt="%Y-%m-%d %H:%M:%S",
 )
 logger = logging.getLogger(__name__)
 
+
 def load_config() -> Dict[str, Any]:
     """加载配置文件"""
-    config_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'config.local.json')
+    config_path = os.path.join(
+        os.path.dirname(os.path.dirname(__file__)), "config.local.json"
+    )
     try:
-        with open(config_path, 'r', encoding='utf-8') as f:
+        with open(config_path, "r", encoding="utf-8") as f:
             return json.load(f)
     except FileNotFoundError:
         logger.error(f"配置文件未找到: {config_path}")
@@ -37,13 +40,13 @@ def load_config() -> Dict[str, Any]:
 
 def get_latest_workflow_run(config: Dict[str, Any]) -> int:
     """获取最新的工作流运行"""
-    token = config['github']['token']
-    repo = config['github']['repository']
+    token = config["github"]["token"]
+    repo = config["github"]["repository"]
     api_url = f"https://api.github.com/repos/{repo}/actions/runs"
 
     headers = {
-        'Authorization': f'Bearer {token}',
-        'Accept': 'application/vnd.github.v3+json'
+        "Authorization": f"Bearer {token}",
+        "Accept": "application/vnd.github.v3+json",
     }
 
     try:
@@ -51,12 +54,12 @@ def get_latest_workflow_run(config: Dict[str, Any]) -> int:
         response.raise_for_status()
         runs = response.json()
 
-        if not runs['workflow_runs']:
+        if not runs["workflow_runs"]:
             logger.error("没有找到任何工作流运行记录")
             sys.exit(1)
 
-        latest_run = runs['workflow_runs'][0]
-        return latest_run['id']
+        latest_run = runs["workflow_runs"][0]
+        return latest_run["id"]
 
     except Timeout:
         logger.error("请求超时，请检查网络连接")
@@ -78,13 +81,13 @@ def get_latest_workflow_run(config: Dict[str, Any]) -> int:
 
 def get_workflow_jobs(config: Dict[str, Any], run_id: int) -> Dict[str, Any]:
     """获取工作流作业的详细信息"""
-    token = config['github']['token']
-    repo = config['github']['repository']
+    token = config["github"]["token"]
+    repo = config["github"]["repository"]
     api_url = f"https://api.github.com/repos/{repo}/actions/runs/{run_id}/jobs"
 
     headers = {
-        'Authorization': f'Bearer {token}',
-        'Accept': 'application/vnd.github.v3+json'
+        "Authorization": f"Bearer {token}",
+        "Accept": "application/vnd.github.v3+json",
     }
 
     try:
@@ -127,7 +130,7 @@ def print_job_info(jobs_data: Dict[str, Any]) -> None:
     logger.info("最新的 CI 运行状态:")
     print("=" * 80)
 
-    for job in jobs_data['jobs']:
+    for job in jobs_data["jobs"]:
         print(f"作业名称: {job['name']}")
         print(f"状态: {job['status']}")
         print(f"结果: {job['conclusion']}")
@@ -136,16 +139,22 @@ def print_job_info(jobs_data: Dict[str, Any]) -> None:
         print(f"详情链接: {job['html_url']}")
         print("\n步骤详情:")
 
-        for step in job['steps']:
-            status_icon = ("✅" if step['conclusion'] == 'success' else
-                         "❌" if step['conclusion'] == 'failure' else
-                         "⏭️" if step['conclusion'] == 'skipped' else "⚪")
+        for step in job["steps"]:
+            status_icon = (
+                "✅"
+                if step["conclusion"] == "success"
+                else "❌"
+                if step["conclusion"] == "failure"
+                else "⏭️"
+                if step["conclusion"] == "skipped"
+                else "⚪"
+            )
             print(f"{status_icon} {step['name']}: {step['conclusion']}")
 
         print("=" * 80)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     try:
         config = load_config()
         run_id = get_latest_workflow_run(config)
