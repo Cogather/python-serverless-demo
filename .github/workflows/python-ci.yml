@@ -56,4 +56,26 @@ jobs:
       with:
         name: test-results
         path: test-results.xml
-      if: always() 
+      if: always()
+
+  docker:
+    runs-on: ubuntu-latest
+    needs: test
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Log in to Docker Hub
+      uses: docker/login-action@v2
+      with:
+        username: ${{ secrets.DOCKERHUB_USERNAME }}
+        password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+    - name: Build and push Docker image
+      uses: docker/build-push-action@v4
+      with:
+        context: .
+        push: true
+        tags: |
+          ${{ secrets.DOCKERHUB_USERNAME }}/python-serverless-demo:latest
+          ${{ secrets.DOCKERHUB_USERNAME }}/python-serverless-demo:${{ github.sha }} 
