@@ -11,9 +11,9 @@ from .core import (
 )
 
 __all__ = [
-    'add',
-    'subtract',
-    'multiply',
-    'divide',
-    'sqrt',
+    "add",
+    "subtract",
+    "multiply",
+    "divide",
+    "sqrt",
 ]

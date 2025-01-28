@@ -44,7 +44,7 @@ def create_pull_request(config):
     current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     
     headers = {
-        'Authorization': f'token {token}',
+        'Authorization': f'Bearer {token}',
         'Accept': 'application/vnd.github.v3+json'
     }
     
@@ -83,6 +83,11 @@ def create_pull_request(config):
         'maintainer_can_modify': True
     }
     
+    print(f"当前分支: {current_branch}")
+    print(f"API URL: {api_url}")
+    print("请求头:", json.dumps(headers, indent=2))
+    print("请求数据:", json.dumps(data, indent=2))
+    
     try:
         response = requests.post(api_url, headers=headers, json=data)
         response.raise_for_status()
@@ -92,8 +97,13 @@ def create_pull_request(config):
     except requests.exceptions.RequestException as e:
         print(f"错误: 创建Pull Request失败")
         print(f"详细信息: {str(e)}")
-        if hasattr(e.response, 'json'):
-            print(f"GitHub API响应: {e.response.json()}")
+        if hasattr(e, 'response') and e.response is not None:
+            print(f"状态码: {e.response.status_code}")
+            print(f"响应头: {json.dumps(dict(e.response.headers), indent=2)}")
+            try:
+                print(f"响应内容: {json.dumps(e.response.json(), indent=2)}")
+            except:
+                print(f"响应内容: {e.response.text}")
         sys.exit(1)
 
 

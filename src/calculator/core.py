@@ -82,4 +82,4 @@ def sqrt(x: float) -> float:
     """
     if x < 0:
         raise ValueError("不能计算负数的平方根")
-    return math.sqrt(x) 
+    return math.sqrt(x)
