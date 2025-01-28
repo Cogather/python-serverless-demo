@@ -15,13 +15,14 @@ import requests
 def load_config() -> Dict[str, Any]:
     """加载配置文件"""
     config_path = os.path.join(
-        os.path.dirname(os.path.dirname(__file__)), "config.local.json"
+        os.path.dirname(os.path.dirname(__file__)),
+        "config.local.json"
     )
     try:
         with open(config_path, "r", encoding="utf-8") as f:
             return json.load(f)
     except FileNotFoundError:
-        print(f"错误: 未找到配置文件 {config_path}")
+        print("错误: 未找到配置文件 %s", config_path)
         sys.exit(1)
 
 
@@ -52,19 +53,26 @@ def get_pr_info(config: Dict[str, Any]) -> Dict[str, Any]:
             if pr["head"]["ref"] == current_branch:
                 return pr
 
-        print(f"错误: 未找到分支 {current_branch} 的 PR")
+        print("错误: 未找到分支 %s 的 PR", current_branch)
         sys.exit(1)
 
-    except Exception as e:
-        print(f"错误: 获取 PR 信息失败 - {str(e)}")
+    except (IOError, OSError) as e:
+        print("错误: 无法读取.git/HEAD文件 - %s", str(e))
+        sys.exit(1)
+    except requests.exceptions.RequestException as e:
+        print("错误: 获取 PR 信息失败 - %s", str(e))
         sys.exit(1)
 
 
-def get_pr_reviews(config: Dict[str, Any], pr_number: int) -> List[Dict[str, Any]]:
+def get_pr_reviews(
+    config: Dict[str, Any], pr_number: int
+) -> List[Dict[str, Any]]:
     """获取PR的所有检视意见"""
     token = config["github"]["token"]
     repo = config["github"]["repository"]
-    api_url = f"https://api.github.com/repos/{repo}/pulls/{pr_number}/comments"
+    api_url = (
+        f"https://api.github.com/repos/{repo}/pulls/{pr_number}/comments"
+    )
 
     headers = {
         "Authorization": f"Bearer {token}",
@@ -79,10 +87,10 @@ def get_pr_reviews(config: Dict[str, Any], pr_number: int) -> List[Dict[str, Any
             for comment in response.json()
         ]
 
-    except Exception as e:
-        print(f"错误: 获取检视意见失败 - {str(e)}")
+    except requests.exceptions.RequestException as e:
+        print("错误: 获取检视意见失败 - %s", str(e))
         if hasattr(e, "response") and e.response is not None:
-            print(f"响应内容: {e.response.text}")
+            print("响应内容: %s", e.response.text)
         sys.exit(1)
 
 
@@ -123,15 +131,15 @@ def print_review_comments(comments_by_file: Dict[str, List[Dict[str, Any]]]):
     print("=" * 80)
 
     for file_path, comments in comments_by_file.items():
-        print(f"\n文件: {file_path}")
+        print("\n文件: %s", file_path)
         print("-" * 40)
 
         for comment in comments:
-            print(f"行号: {comment['line']}")
-            print(f"检视者: {comment['reviewer']}")
-            print(f"时间: {comment['time']}")
-            print(f"意见: {comment['body']}")
-            print(f"链接: {comment['url']}")
+            print("行号: %d", comment["line"])
+            print("检视者: %s", comment["reviewer"])
+            print("时间: %s", comment["time"])
+            print("意见: %s", comment["body"])
+            print("链接: %s", comment["url"])
             print()
 
 
@@ -145,12 +153,12 @@ def main():
         return
 
     pr_number = pr_data["number"]
-    print(f"\nPull Request 信息:")
+    print("\nPull Request 信息:")
     print("=" * 80)
-    print(f"标题: {pr_data['title']}")
-    print(f"编号: #{pr_number}")
-    print(f"状态: {pr_data['state']}")
-    print(f"URL: {pr_data['html_url']}")
+    print("标题: %s", pr_data["title"])
+    print("编号: #%d", pr_number)
+    print("状态: %s", pr_data["state"])
+    print("URL: %s", pr_data["html_url"])
 
     # 获取并显示检视意见
     reviews = get_pr_reviews(config, pr_number)
@@ -158,10 +166,13 @@ def main():
     print_review_comments(comments_by_file)
 
     # 保存检视意见到文件，供其他脚本使用
-    output_file = os.path.join(os.path.dirname(__file__), "review_comments.json")
+    output_file = os.path.join(
+        os.path.dirname(__file__),
+        "review_comments.json"
+    )
     with open(output_file, "w", encoding="utf-8") as f:
         json.dump(comments_by_file, f, ensure_ascii=False, indent=2)
-    print(f"\n检视意见已保存到: {output_file}")
+    print("\n检视意见已保存到: %s", output_file)
 
 
 if __name__ == "__main__":

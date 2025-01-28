@@ -11,7 +11,12 @@ from datetime import datetime, timezone
 from typing import Dict, Any
 
 import requests
-from requests.exceptions import RequestException, HTTPError, ConnectionError, Timeout
+from requests.exceptions import (
+    RequestException,
+    HTTPError,
+    ConnectionError,
+    Timeout,
+)
 
 # 配置日志
 logging.basicConfig(
@@ -25,16 +30,17 @@ logger = logging.getLogger(__name__)
 def load_config() -> Dict[str, Any]:
     """加载配置文件"""
     config_path = os.path.join(
-        os.path.dirname(os.path.dirname(__file__)), "config.local.json"
+        os.path.dirname(os.path.dirname(__file__)),
+        "config.local.json"
     )
     try:
         with open(config_path, "r", encoding="utf-8") as f:
             return json.load(f)
     except FileNotFoundError:
-        logger.error(f"配置文件未找到: {config_path}")
+        logger.error("配置文件未找到: %s", config_path)
         sys.exit(1)
     except json.JSONDecodeError as e:
-        logger.error(f"配置文件格式错误: {str(e)}")
+        logger.error("配置文件格式错误: %s", str(e))
         sys.exit(1)
 
 
@@ -83,7 +89,9 @@ def get_workflow_jobs(config: Dict[str, Any], run_id: int) -> Dict[str, Any]:
     """获取工作流作业的详细信息"""
     token = config["github"]["token"]
     repo = config["github"]["repository"]
-    api_url = f"https://api.github.com/repos/{repo}/actions/runs/{run_id}/jobs"
+    api_url = (
+        f"https://api.github.com/repos/{repo}/actions/runs/{run_id}/jobs"
+    )
 
     headers = {
         "Authorization": f"Bearer {token}",

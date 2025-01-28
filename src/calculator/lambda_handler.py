@@ -20,11 +20,11 @@ def lambda_handler(
 ) -> Dict[str, Any]:
     """
     AWS Lambda处理函数，用于处理API Gateway的请求。
-    
+
     Args:
         event: API Gateway事件
         context: Lambda上下文
-        
+
     Returns:
         API响应
     """
@@ -33,7 +33,7 @@ def lambda_handler(
         response = handler(event, context)
         return response
     except Exception as e:
-        logger.error(f"处理请求时发生错误: {str(e)}")
+        logger.error("处理请求时发生错误: %s", str(e))
         return {
             "statusCode": 500,
             "body": json.dumps({"error": "Internal Server Error"}),

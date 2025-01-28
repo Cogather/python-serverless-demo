@@ -26,7 +26,9 @@ def test_health_check():
         ("/sqrt", {"value": 16}, 4, "square_root"),
     ],
 )
-def test_calculation_endpoints(endpoint, data, expected_result, expected_operation):
+def test_calculation_endpoints(
+    endpoint, data, expected_result, expected_operation
+):
     """测试计算接口"""
     response = client.post(endpoint, json=data)
     assert response.status_code == 200
@@ -39,7 +41,8 @@ def test_divide_by_zero():
     """测试除零错误处理"""
     response = client.post("/divide", json={"a": 1, "b": 0})
     assert response.status_code == 400
-    assert "除数不能为0（当前: 被除数=1.0, 除数=0.0）" in response.json()["detail"]
+    error_msg = "除数不能为0（当前: 被除数=1.0, 除数=0.0）"
+    assert error_msg in response.json()["detail"]
 
 
 def test_negative_sqrt():
@@ -62,7 +65,8 @@ def test_negative_sqrt():
 def test_invalid_input_handling(endpoint, invalid_data):
     """测试无效输入处理"""
     response = client.post(endpoint, json=invalid_data)
-    assert response.status_code == 422  # FastAPI的验证错误状态码
+    # FastAPI的验证错误状态码
+    assert response.status_code == 422
 
 
 @pytest.mark.asyncio
@@ -71,8 +75,13 @@ async def test_concurrent_requests():
     import asyncio
     import httpx
 
-    async with httpx.AsyncClient(app=app, base_url="http://test") as ac:
-        tasks = [ac.post("/add", json={"a": i, "b": i}) for i in range(10)]
+    async with httpx.AsyncClient(
+        app=app, base_url="http://test"
+    ) as ac:
+        tasks = [
+            ac.post("/add", json={"a": i, "b": i})
+            for i in range(10)
+        ]
         responses = await asyncio.gather(*tasks)
 
         for i, response in enumerate(responses):
