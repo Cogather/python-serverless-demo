@@ -11,36 +11,43 @@
 ### 项目结构
 ```
 .
-├── .ci/                    # CI 相关脚本（不纳入版本控制）
-│   ├── check_ci.py        # 检查 CI 运行状态
-│   └── check_job.py       # 获取 CI 作业详细信息
-├── .github/workflows/      # GitHub Actions 配置
-│   └── python-ci.yml      # CI 工作流配置
-├── calculator.py          # 主要业务逻辑
-├── test_calculator.py     # 测试用例
+├── src/                    # 源代码目录
+│   └── calculator/         # 计算器模块
+│       ├── __init__.py    # 模块接口
+│       └── core.py        # 核心实现
+├── tests/                  # 测试目录
+│   └── calculator/        # 计算器模块测试
+│       └── test_core.py   # 核心功能测试
+├── docs/                   # 文档目录
+│   └── PROJECT_STATUS.md  # 项目状态文档
+├── scripts/               # 脚本目录
+│   ├── check_ci.py       # 检查 CI 运行状态
+│   └── check_job.py      # 获取 CI 作业详细信息
+├── .github/workflows/     # GitHub Actions 配置
+│   └── python-ci.yml     # CI 工作流配置
 ├── pyproject.toml        # Poetry 项目配置
-└── poetry.lock           # 依赖版本锁定
+└── poetry.lock          # 依赖版本锁定
 ```
 
 ## API 文档
 
-### 计算器模块 (calculator.py)
+### 计算器模块 (calculator.core)
 - `add(a: float, b: float) -> float`: 加法运算
 - `subtract(a: float, b: float) -> float`: 减法运算
 - `multiply(a: float, b: float) -> float`: 乘法运算
 - `divide(a: float, b: float) -> float`: 除法运算
-- `sqrt(x: float) -> float`: 平方根计算（新增）
+- `sqrt(x: float) -> float`: 平方根计算
 
 ### CI 检查脚本
 1. **check_ci.py**
    - 功能：监控 GitHub Actions CI 运行状态
    - 环境变量：`GITHUB_TOKEN`（必需）
-   - 用法：`poetry run python .ci/check_ci.py`
+   - 用法：`poetry run python scripts/check_ci.py`
 
 2. **check_job.py**
    - 功能：获取 CI 作业的详细日志
    - 环境变量：`GITHUB_TOKEN`（必需）
-   - 用法：`poetry run python .ci/check_job.py`
+   - 用法：`poetry run python scripts/check_job.py`
 
 ## GitHub API 使用
 - Actions Runs API: `GET /repos/{owner}/{repo}/actions/runs`
@@ -65,14 +72,14 @@
 
 ## 注意事项
 1. CI 脚本需要设置 `GITHUB_TOKEN` 环境变量
-2. `.ci` 目录已添加到 `.gitignore`
-3. 运行 flake8 时需要排除虚拟环境目录
-4. Black 和 Flake8 的行长度配置保持一致（88 字符）
+2. 运行 flake8 时需要排除虚拟环境目录
+3. Black 和 Flake8 的行长度配置保持一致（88 字符）
 
 ## 最近更新
-1. 添加平方根计算功能
-2. 优化 CI 配置，解决工具冲突
-3. 改进错误处理和文档
+1. 重构项目目录结构，采用标准的Python项目布局
+2. 将核心功能移至独立模块
+3. 优化测试文件组织
+4. 更新文档以反映新的结构
 
 ## 待办事项
 - [ ] 实现持续部署流程

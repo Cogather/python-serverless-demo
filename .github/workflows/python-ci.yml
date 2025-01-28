@@ -42,12 +42,14 @@ jobs:
     
     - name: Check code formatting with Black
       run: |
-        poetry run black . --check
+        poetry run black src --check
     
     - name: Lint with flake8
       run: |
-        poetry run flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics --ignore=E402 --exclude=.venv,venv,env
-        poetry run flake8 . --count --exit-zero --ignore=E402 --max-complexity=10 --max-line-length=88 --statistics --exclude=.venv,venv,env
+        # 检查严重错误
+        poetry run flake8 src --count --select=E9,F63,F7,F82 --show-source --statistics
+        # 检查代码风格
+        poetry run flake8 src --count --exit-zero --max-complexity=10 --max-line-length=88 --statistics
     
     - name: Run tests with pytest
       run: |

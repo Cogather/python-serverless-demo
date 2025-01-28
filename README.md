@@ -1,77 +1,102 @@
-# Python Serverless Demo
+# Python 无服务器演示项目
 
-这是一个演示GitHub Actions和CI/CD功能的Python项目。
+这是一个基于 Python 的无服务器演示项目，用于展示基本的数学计算功能，同时演示 GitHub Actions 和 CI/CD 的使用。
 
-## 功能特点
+## 功能特性
 
-- 使用GitHub Actions进行自动化测试
-- 代码质量检查 (flake8)
-- 代码格式化 (black)
-- 自动化测试 (pytest)
+- 基本数学运算（加、减、乘、除）
+- 平方根计算
+- 完整的单元测试
+- CI/CD 流程
+- 代码质量控制
 
-## 项目设置
+## 快速开始
 
-1. 克隆项目
+### 环境要求
+
+- Python 3.8+
+- Poetry
+
+### 安装
+
+1. 克隆仓库：
+
 ```bash
-git clone https://github.com/YOUR_USERNAME/python-serverless-demo.git
+git clone https://github.com/yourusername/python-serverless-demo.git
 cd python-serverless-demo
 ```
 
-2. 安装依赖
+2. 安装依赖：
+
 ```bash
-pip install -r requirements.txt
+poetry install
 ```
 
-## 开发指南
+### 使用示例
 
-- 运行测试：`pytest`
-- 代码格式化：`black .`
-- 代码检查：`flake8`
+```python
+from calculator import add, subtract, multiply, divide, sqrt
 
-## CI/CD 流程
+# 基本运算
+result = add(1, 2)      # 3
+result = subtract(5, 3)  # 2
+result = multiply(4, 2)  # 8
+result = divide(6, 2)    # 3
+result = sqrt(16)        # 4
+```
 
-本项目使用GitHub Actions进行CI/CD，包括：
-- 代码质量检查
-- 自动化测试
-- 代码格式验证 
+## 开发
 
-## CI 配置要点
+### 运行测试
 
-### 工具链配置
+```bash
+poetry run pytest
+```
 
-1. **Black 代码格式化**
-   - 使用默认配置（行长度 88 字符）
-   - 在提交前运行格式化检查
+### 代码格式化
 
-2. **Flake8 代码质量检查**
-   - 分两步检查：
-     1. 严重错误检查：`--select=E9,F63,F7,F82`（语法错误、未定义变量等）
-     2. 风格和复杂度检查：`--max-complexity=10 --max-line-length=88`
-   - 关键配置：
-     - `--ignore=E402`：忽略模块级导入顺序
-     - `--exclude=.venv,venv,env`：排除虚拟环境目录
-     - `--max-line-length=88`：与 Black 保持一致
+```bash
+poetry run black .
+```
 
-3. **Poetry 依赖管理**
-   - 使用 `poetry.lock` 确保依赖版本一致
-   - 配置虚拟环境在项目目录下：`virtualenvs.in-project true`
+### 代码检查
 
-### 问题定位思路
+```bash
+poetry run flake8
+```
 
-1. **环境一致性问题**
-   - 本地和 CI 环境的差异（如 flake8 检查范围不同）
-   - 使用 `--exclude` 排除不需要检查的目录
+## 项目结构
 
-2. **工具冲突处理**
-   - Black 和 Flake8 的行长度配置保持一致
-   - 使用 `ignore` 参数处理特定场景的规则冲突
+```
+.
+├── src/                    # 源代码目录
+│   └── calculator/         # 计算器模块
+│       ├── __init__.py    # 模块接口
+│       └── core.py        # 核心实现
+├── tests/                  # 测试目录
+│   └── calculator/        # 计算器模块测试
+│       └── test_core.py   # 核心功能测试
+├── docs/                   # 文档目录
+├── scripts/               # 脚本目录
+└── .github/workflows/     # GitHub Actions 配置
+```
 
-3. **CI 失败排查**
-   - 检查 CI 日志获取详细错误信息
-   - 在本地复现 CI 环境的检查命令
-   - 使用辅助脚本（如 `.ci/check_job.py`）监控 CI 状态
+## 文档
 
-4. **最佳实践**
-   - 将 CI 检查脚本与项目代码分离（放在 `.ci` 目录）
-   - 敏感信息（如 token）使用环境变量管理
-   - 保持 CI 配置文件的清晰和可维护性 
+详细的项目文档请参见 [docs/PROJECT_STATUS.md](docs/PROJECT_STATUS.md)。
+
+## CI/CD
+
+项目使用 GitHub Actions 进行持续集成和部署。每次提交都会自动运行以下检查：
+
+- 代码风格检查（Black）
+- 代码质量检查（Flake8）
+- 单元测试（Pytest）
+
+## 贡献
+
+欢迎提交 Issue 和 Pull Request！
+
+## 许可证
+
+本项目采用 MIT 许可证 - 详见 [LICENSE](LICENSE) 文件 

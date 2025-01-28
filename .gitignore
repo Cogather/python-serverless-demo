@@ -5,36 +5,20 @@ __pycache__/
 *.so
 .Python
 build/
-develop-eggs/
 dist/
-downloads/
-eggs/
-.eggs/
-lib/
-lib64/
-parts/
-sdist/
-var/
-wheels/
 *.egg-info/
-.installed.cfg
 *.egg
-get-pip.py
 
-# CI Scripts
-.ci/
-
-# Virtual Environment
+# 开发环境
+.venv/
 venv/
 env/
-ENV/
-.venv/
-.env/
+.env
 .python-version
+.local.env
 
-# Poetry
-.poetry/
-dist/
+# 依赖管理
+poetry.lock
 
 # IDE
 .idea/
@@ -42,15 +26,23 @@ dist/
 *.swp
 *.swo
 
-# Testing
+# 测试和覆盖率
 .coverage
-htmlcov/
-.pytest_cache/
-.tox/
 .coverage.*
+.pytest_cache/
+htmlcov/
 coverage.xml
-*.cover
 test-results.xml
 
-# Misc
-.DS_Store 
+# 系统文件
+.DS_Store
+Thumbs.db
+
+# 本地配置
+.local.env
+.env.local
+config.local.json
+
+# 系统文件
+.DS_Store
+Thumbs.db 
