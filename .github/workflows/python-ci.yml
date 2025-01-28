@@ -60,7 +60,8 @@ jobs:
 
   docker:
     runs-on: ubuntu-latest
-    needs: test  # 确保在测试作业成功后才运行
+    needs: test
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     steps:
     - uses: actions/checkout@v3
 
