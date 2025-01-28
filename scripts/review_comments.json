@@ -1,0 +1,57 @@
+{
+  "scripts/check_job.py": [
+    {
+      "line": 21,
+      "body": "建议使用日志模块（logging）来替代 print 输出错误信息，这样可以更好地控制日志级别和格式。",
+      "reviewer": "yuyu0317",
+      "time": "2025-01-28 12:57:16",
+      "url": "https://github.com/yuyu0317/python-serverless-demo/pull/2#discussion_r1932120059"
+    },
+    {
+      "line": 48,
+      "body": "建议将异常处理分得更细致，分别处理 `requests.exceptions.RequestException` 和其他可能的异常。",
+      "reviewer": "yuyu0317",
+      "time": "2025-01-28 12:57:16",
+      "url": "https://github.com/yuyu0317/python-serverless-demo/pull/2#discussion_r1932120064"
+    },
+    {
+      "line": 49,
+      "body": "建议使用日志模块（logging）来替代 print 输出错误信息，这样可以更好地控制日志级别和格式。",
+      "reviewer": "yuyu0317",
+      "time": "2025-01-28 12:57:16",
+      "url": "https://github.com/yuyu0317/python-serverless-demo/pull/2#discussion_r1932120067"
+    },
+    {
+      "line": 76,
+      "body": "建议将异常处理分得更细致，分别处理 `requests.exceptions.RequestException` 和其他可能的异常。",
+      "reviewer": "yuyu0317",
+      "time": "2025-01-28 12:57:16",
+      "url": "https://github.com/yuyu0317/python-serverless-demo/pull/2#discussion_r1932120072"
+    },
+    {
+      "line": 77,
+      "body": "建议使用日志模块（logging）来替代 print 输出错误信息，这样可以更好地控制日志级别和格式。",
+      "reviewer": "yuyu0317",
+      "time": "2025-01-28 12:57:16",
+      "url": "https://github.com/yuyu0317/python-serverless-demo/pull/2#discussion_r1932120078"
+    }
+  ],
+  "src/calculator/core.py": [
+    {
+      "line": 84,
+      "body": "建议在错误消息中添加更多上下文信息，例如当前的输入值。",
+      "reviewer": "yuyu0317",
+      "time": "2025-01-28 12:57:16",
+      "url": "https://github.com/yuyu0317/python-serverless-demo/pull/2#discussion_r1932120083"
+    }
+  ],
+  "tests/calculator/test_core.py": [
+    {
+      "line": 1,
+      "body": "建议添加以下测试用例：\n1. 边界值测试（例如：最大浮点数、最小浮点数）\n2. 性能测试（使用 @pytest.mark.benchmark）\n3. 参数类型测试（确保函数能正确处理不同类型的数值输入）",
+      "reviewer": "yuyu0317",
+      "time": "2025-01-28 12:57:16",
+      "url": "https://github.com/yuyu0317/python-serverless-demo/pull/2#discussion_r1932120086"
+    }
+  ]
+}

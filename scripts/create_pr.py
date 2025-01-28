@@ -13,9 +13,11 @@ import requests
 
 def load_config():
     """加载本地配置文件"""
-    config_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'config.local.json')
+    config_path = os.path.join(
+        os.path.dirname(os.path.dirname(__file__)), "config.local.json"
+    )
     try:
-        with open(config_path, 'r', encoding='utf-8') as f:
+        with open(config_path, "r", encoding="utf-8") as f:
             return json.load(f)
     except FileNotFoundError:
         print(f"错误: 未找到配置文件 {config_path}")
@@ -25,9 +27,9 @@ def load_config():
 def get_current_branch():
     """获取当前分支名称"""
     try:
-        with open('.git/HEAD', 'r') as f:
+        with open(".git/HEAD", "r") as f:
             ref = f.read().strip()
-            if ref.startswith('ref: refs/heads/'):
+            if ref.startswith("ref: refs/heads/"):
                 return ref[16:]
     except:
         print("错误: 无法获取当前分支名称")
@@ -36,21 +38,21 @@ def get_current_branch():
 
 def create_pull_request(config):
     """创建Pull Request"""
-    token = config['github']['token']
-    repo = config['github']['repository']
+    token = config["github"]["token"]
+    repo = config["github"]["repository"]
     api_url = f"https://api.github.com/repos/{repo}/pulls"
-    
+
     current_branch = get_current_branch()
     current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    
+
     headers = {
-        'Authorization': f'Bearer {token}',
-        'Accept': 'application/vnd.github.v3+json'
+        "Authorization": f"Bearer {token}",
+        "Accept": "application/vnd.github.v3+json",
     }
-    
+
     data = {
-        'title': f'代码重构: 优化项目结构 ({current_time})',
-        'body': '''
+        "title": f"代码重构: 优化项目结构 ({current_time})",
+        "body": """
 ## 更新内容
 
 1. 重构项目目录结构，采用标准的Python项目布局
@@ -77,17 +79,17 @@ def create_pull_request(config):
 - [x] 所有测试通过
 - [x] 代码风格检查通过
 - [x] 文档已更新
-''',
-        'head': current_branch,
-        'base': 'main',
-        'maintainer_can_modify': True
+""",
+        "head": current_branch,
+        "base": "main",
+        "maintainer_can_modify": True,
     }
-    
+
     print(f"当前分支: {current_branch}")
     print(f"API URL: {api_url}")
     print("请求头:", json.dumps(headers, indent=2))
     print("请求数据:", json.dumps(data, indent=2))
-    
+
     try:
         response = requests.post(api_url, headers=headers, json=data)
         response.raise_for_status()
@@ -97,7 +99,7 @@ def create_pull_request(config):
     except requests.exceptions.RequestException as e:
         print(f"错误: 创建Pull Request失败")
         print(f"详细信息: {str(e)}")
-        if hasattr(e, 'response') and e.response is not None:
+        if hasattr(e, "response") and e.response is not None:
             print(f"状态码: {e.response.status_code}")
             print(f"响应头: {json.dumps(dict(e.response.headers), indent=2)}")
             try:
@@ -107,6 +109,6 @@ def create_pull_request(config):
         sys.exit(1)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     config = load_config()
-    create_pull_request(config) 
+    create_pull_request(config)

@@ -63,7 +63,7 @@ def divide(a: float, b: float) -> float:
         ZeroDivisionError: 当除数为0时抛出
     """
     if b == 0:
-        raise ZeroDivisionError("除数不能为0")
+        raise ZeroDivisionError(f"除数不能为0（当前: 被除数={a}, 除数={b}）")
     return a / b
 
 
@@ -81,5 +81,5 @@ def sqrt(x: float) -> float:
         ValueError: 当x为负数时抛出
     """
     if x < 0:
-        raise ValueError("不能计算负数的平方根")
+        raise ValueError(f"不能计算负数的平方根（当前输入值: {x}）")
     return math.sqrt(x)
