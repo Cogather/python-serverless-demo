@@ -17,9 +17,6 @@ env/
 .python-version
 .local.env
 
-# 依赖管理
-poetry.lock
-
 # IDE
 .idea/
 .vscode/
