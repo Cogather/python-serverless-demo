@@ -34,12 +34,6 @@ jobs:
       run: |
         poetry install
     
-    - name: Export requirements.txt
-      continue-on-error: true  # 即使导出失败也继续执行
-      run: |
-        poetry export --without-hashes --output requirements.txt || echo "Failed to export requirements.txt"
-        poetry export --without-hashes --with dev --output requirements-dev.txt || echo "Failed to export requirements-dev.txt"
-    
     - name: Check code formatting with Black
       run: |
         poetry run black src --check
@@ -62,13 +56,4 @@ jobs:
       with:
         name: test-results
         path: test-results.xml
-      if: always()
-    
-    - name: Upload requirements.txt
-      uses: actions/upload-artifact@v3
-      with:
-        name: requirements
-        path: |
-          requirements.txt
-          requirements-dev.txt
-      if: success() && github.ref == 'refs/heads/main' 
+      if: always() 
