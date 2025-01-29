@@ -1,175 +1,106 @@
-# 开发环境配置指南
+# 开发环境设置指南
 
-本文档介绍了在本地设置开发环境所需的所有依赖和配置步骤。
+## 环境要求
 
-## 系统要求
+- Python >= 3.8.1
+- Poetry >= 1.7.0
+- Docker (可选，用于本地测试)
+- AWS CLI (已配置凭证)
 
-- Windows 10 64位（专业版、企业版或教育版，Build 19044或更高版本）
-- 最小 8GB RAM 推荐
-- 至少 20GB 可用磁盘空间
+## 快速开始
 
-## 必需软件
-
-### 1. Python 环境
-
-- Python 版本: 3.8.1 或更高版本（小于 4.0.0）
-- 推荐使用 [pyenv](https://github.com/pyenv-win/pyenv-win) 管理 Python 版本
-
-安装步骤：
-```powershell
-# 使用 pyenv 安装 Python
-pyenv install 3.8.1
-pyenv global 3.8.1
-```
-
-### 2. Poetry 包管理工具
-
-Poetry 用于管理项目依赖，版本 1.4.0 或更高版本。
-
-安装步骤：
-```powershell
-# Windows PowerShell 安装命令
-(Invoke-WebRequest -Uri https://install.python-poetry.org -UseBasicParsing).Content | python -
-
-# 验证安装
-poetry --version
-```
-
-### 3. Docker 环境
-
-需要安装 Docker Desktop for Windows。
-
-前置条件：
-- 启用 Windows 的 Hyper-V 功能
-- 启用 WSL 2（Windows Subsystem for Linux 2）
-
-安装步骤：
-1. 启用 WSL 2：
-   ```powershell
-   wsl --install
-   ```
-
-2. 下载并安装 [Docker Desktop](https://www.docker.com/products/docker-desktop)
-   - 运行安装程序
-   - 选择 "Use WSL 2 instead of Hyper-V" 选项
-   - 完成安装后重启电脑
-
-3. 验证 Docker 安装：
-   ```powershell
-   docker --version
-   docker-compose --version
-   ```
-
-## 项目依赖
-
-项目使用 Poetry 管理依赖，主要依赖包括：
-
-### 核心依赖
-- aws-lambda-powertools: ^2.0
-- boto3: ^1.34
-- fastapi: ^0.109.0
-- mangum: ^0.17.0
-- uvicorn: ^0.27.0
-- pydantic: ^2.5.3
-
-### 开发依赖
-- pytest: ^7.4
-- black: ^23.12
-- flake8: ^6.1
-- pytest-benchmark: ^4.0.0
-- httpx: ^0.26.0
-- pytest-asyncio: ^0.23.3
-
-## 项目设置
-
-1. 克隆项目：
-   ```bash
-   git clone [项目地址]
-   cd python-serverless-demo
-   ```
-
-2. 安装依赖：
-   ```bash
-   poetry install
-   ```
-
-3. 激活虚拟环境：
-   ```bash
-   poetry shell
-   ```
-
-## 开发工具推荐
-
-- VSCode 或 PyCharm Professional
-- Git 版本控制
-- Windows Terminal（提供更好的命令行体验）
-
-## 验证开发环境
-
-运行以下命令验证环境配置：
-
+1. 克隆项目
 ```bash
-# 运行测试
-poetry run pytest
-
-# 代码格式化检查
-poetry run black . --check
-poetry run flake8
-
-# 验证 Docker
-docker ps
+git clone https://github.com/yourusername/python-serverless-demo.git
+cd python-serverless-demo
 ```
 
-## Docker 环境发布
+2. 安装依赖
+```bash
+poetry install
+```
 
-### 1. Docker 镜像构建
+3. 激活虚拟环境
+```bash
+poetry shell
+```
 
-本项目使用 Docker 进行容器化部署。镜像构建基于 Python 3.10 slim 版本，主要包含以下内容：
-- Python 3.10 运行环境
-- Poetry 包管理工具
-- 项目源代码和依赖
-- FastAPI 应用服务
+## 主要依赖版本
 
-构建镜像：
+- FastAPI: 0.109.0
+- AWS Lambda Powertools: 2.0
+- Boto3: 1.34
+- Pydantic: 2.5.3
+- Mangum: 0.17.0
+
+## 本地开发
+
+1. 运行本地开发服务器
+```bash
+uvicorn src.calculator.api:app --reload
+```
+
+2. 访问API文档
+- Swagger UI: http://localhost:8000/docs
+- ReDoc: http://localhost:8000/redoc
+
+## 测试
+
+运行单元测试：
+```bash
+pytest
+```
+
+运行性能测试：
+```bash
+pytest tests/benchmark --benchmark-only
+```
+
+## 代码质量
+
+1. 格式化代码
+```bash
+black .
+```
+
+2. 运行代码检查
+```bash
+flake8
+```
+
+## Docker支持
+
+构建Docker镜像：
 ```bash
 docker build -t python-serverless-demo .
 ```
 
-### 2. 镜像发布流程
-
-项目通过 GitHub Actions 自动化发布 Docker 镜像到 Docker Hub：
-- 当代码合并到 main 分支时自动触发
-- 生成两个版本的标签：
-  - latest: 最新版本
-  - commit-hash: 对应提交的版本
-
-### 3. 本地运行 Docker 容器
-
+运行容器：
 ```bash
-# 运行容器
 docker run -p 8000:8000 python-serverless-demo
-
-# 后台运行
-docker run -d -p 8000:8000 python-serverless-demo
 ```
 
-容器启动后，可以通过 http://localhost:8000 访问服务。
+## 部署
 
-### 4. Docker 相关文件
-
-- `Dockerfile`: 定义镜像构建步骤
-- `.dockerignore`: 排除不需要的文件
-- `.github/workflows/python-ci.yml`: CI/CD 配置，包含 Docker 发布流程
+1. 确保AWS凭证已配置
+2. 运行部署命令：
+```bash
+./deploy.sh
+```
 
 ## 常见问题
 
-1. 如果安装 Docker 时遇到 WSL 2 相关错误：
-   - 确保在 BIOS 中启用了虚拟化功能
-   - 确保 Windows 功能中启用了 "Hyper-V" 和 "Windows Subsystem for Linux"
+1. Poetry安装问题
+   - 确保使用最新版本的poetry
+   - 如遇到依赖冲突，尝试删除poetry.lock后重新安装
 
-2. 如果 Poetry 安装依赖失败：
-   - 确保使用的是兼容的 Python 版本
-   - 尝试清除 Poetry 缓存：`poetry cache clear . --all`
+2. 本地测试问题
+   - 确保所有环境变量都已正确设置
+   - 检查config.local.json配置是否正确
+
+3. 部署问题
+   - 确保AWS凭证配置正确
+   - 检查IAM权限是否充足
 
 ## 更新日志
 

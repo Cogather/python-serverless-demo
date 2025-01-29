@@ -1,162 +1,251 @@
-# Python Serverless 项目工作流程指南
+# 工作流程指南
 
-本文档旨在指导开发者（包括 AI 助手）如何在本项目中进行代码开发、检查、提交、检视等工作。
+本文档描述了项目的开发、测试和部署工作流程。
 
-## 1. 代码开发流程
+## 开发工作流
 
-### 1.1 分支管理
-- 从 `main` 分支创建新的功能分支
-- 分支命名规范：
-  - 功能分支：`feature/功能名称`
-  - 修复分支：`fix/问题描述`
-  - 优化分支：`optimize/优化内容`
+### 1. 分支管理
 
-### 1.2 代码规范
-- 使用 Black 进行代码格式化
-- 遵循 PEP 8 编码规范
-- 代码行长度限制：88 字符
-- 必须添加类型注解
-- 必须添加文档字符串（docstring）
+- `main`: 主分支，保持稳定可部署状态
+- `develop`: 开发分支，用于集成功能
+- `feature/*`: 功能分支，用于开发新功能
+- `bugfix/*`: 修复分支，用于修复问题
+- `release/*`: 发布分支，用于版本发布
 
-## 2. 代码检查流程
+### 2. 代码提交规范
 
-### 2.1 本地代码检查
-使用以下命令进行代码检查：
+提交信息格式：
+```
+<type>(<scope>): <subject>
 
+<body>
+
+<footer>
+```
+
+类型（type）：
+- feat: 新功能
+- fix: 修复
+- docs: 文档更新
+- style: 代码格式
+- refactor: 重构
+- test: 测试
+- chore: 构建过程或辅助工具的变动
+
+### 3. 开发流程
+
+1. 创建功能分支
 ```bash
-# 格式化检查
-poetry run black src --check
+git checkout -b feature/your-feature develop
+```
 
-# 代码风格检查
-poetry run flake8 src --count --select=E9,F63,F7,F82 --show-source --statistics
-poetry run flake8 src --count --exit-zero --max-complexity=10 --max-line-length=88 --statistics
+2. 本地开发
+```bash
+# 启动开发服务器
+uvicorn src.calculator.api:app --reload
 
 # 运行测试
-poetry run pytest -v
+pytest
+
+# 代码格式化
+black .
+flake8
 ```
 
-### 2.2 自动修复格式问题
-如果发现格式问题，使用以下命令自动修复：
-
+3. 提交代码
 ```bash
-poetry run black src
-```
-
-## 3. 代码提交流程
-
-### 3.1 提交前检查
-1. 确保所有测试通过
-2. 确保代码格式正确
-3. 确保文档已更新
-
-### 3.2 提交代码
-使用规范的提交信息格式：
-
-```bash
-# 格式：<type>: <description>
-# type 可以是：feat, fix, docs, style, refactor, test, chore
-
-# 示例：
 git add .
-git commit -m "feat: 添加新功能 - 详细描述"
-git push origin feature/分支名
+git commit -m "feat(calculator): add new operation"
+git push origin feature/your-feature
 ```
 
-## 4. 创建和管理 Pull Request
+4. 创建Pull Request
+- 标题符合提交规范
+- 填写完整的描述
+- 请求代码审查
+- 确保CI检查通过
 
-### 4.1 创建 PR
-使用 `scripts/create_pr.py` 脚本创建 PR：
+## 测试流程
+
+### 1. 单元测试
 
 ```bash
-python scripts/create_pr.py
+# 运行所有测试
+pytest
+
+# 运行特定测试
+pytest tests/test_calculator.py
+
+# 生成覆盖率报告
+pytest --cov=src
 ```
 
-脚本会自动：
-- 获取当前分支信息
-- 创建格式化的 PR 描述
-- 提交 PR 到 GitHub
-
-### 4.2 检查 CI 状态
-使用 `scripts/check_ci.py` 脚本检查 CI 状态：
+### 2. 性能测试
 
 ```bash
-python scripts/check_ci.py
+# 运行基准测试
+pytest tests/benchmark --benchmark-only
 ```
 
-### 4.3 查看现有检视意见
-使用 `scripts/get_reviews.py` 脚本查看检视意见：
+### 3. 集成测试
 
 ```bash
-python scripts/get_reviews.py
+# 运行API测试
+pytest tests/integration
 ```
 
-## 5. 代码检视流程
+## 部署流程
 
-### 5.1 进行代码检视
-使用 `scripts/review_pr.py` 脚本进行代码检视：
+### 1. 环境配置
 
+- 开发环境（dev）
+- 测试环境（staging）
+- 生产环境（prod）
+
+### 2. 部署步骤
+
+1. 准备部署
 ```bash
-python scripts/review_pr.py
+# 更新依赖
+poetry install
+
+# 运行测试
+pytest
+
+# 构建Docker镜像
+docker build -t python-serverless-demo .
 ```
 
-脚本会：
-- 自动检查 src 目录下的代码变更
-- 根据预设规则提供检视意见
-- 将检视意见提交到 GitHub
+2. 部署到AWS
+```bash
+# 部署到开发环境
+./deploy.sh dev
 
-### 5.2 检视重点关注
-1. 代码质量
-   - 代码可读性
-   - 错误处理
-   - 性能问题
-   - 安全问题
+# 部署到测试环境
+./deploy.sh staging
 
-2. API 设计
-   - 接口定义
-   - 参数验证
-   - 错误响应
-   - 安全控制
-
-3. 测试覆盖
-   - 单元测试
-   - 集成测试
-   - 边界测试
-   - 性能测试
-
-## 6. 自动化脚本说明
-
-### 6.1 可用脚本
-- `scripts/check_ci.py`: 检查 CI 运行状态
-- `scripts/check_job.py`: 检查特定任务状态
-- `scripts/create_pr.py`: 创建 Pull Request
-- `scripts/get_reviews.py`: 获取检视意见
-- `scripts/review_pr.py`: 提交代码检视意见
-
-### 6.2 配置要求
-所有脚本都需要 `config.local.json` 配置文件，包含：
-```json
-{
-    "github": {
-        "token": "你的GitHub令牌",
-        "repository": "用户名/仓库名",
-        "base_url": "https://github.com"
-    }
-}
+# 部署到生产环境
+./deploy.sh prod
 ```
 
-## 7. 注意事项
+### 3. 部署验证
 
-### 7.1 安全性
-- 不要在代码中硬编码敏感信息
-- 使用环境变量或配置文件管理密钥
-- 注意 API 的访问控制和限制
+1. 检查AWS控制台
+   - Lambda函数状态
+   - API Gateway配置
+   - CloudWatch日志
 
-### 7.2 性能
-- 注意代码的时间和空间复杂度
-- 避免不必要的 API 调用
-- 合理使用缓存机制
+2. 运行健康检查
+```bash
+curl https://api-endpoint/health
+```
 
-### 7.3 文档维护
-- 及时更新 API 文档
-- 保持 README 文件的最新状态
-- 记录重要的设计决策和变更 
+## CI/CD流程
+
+### 1. GitHub Actions
+
+- 代码提交触发：
+  - 代码质量检查
+  - 单元测试
+  - 构建检查
+
+- 合并到develop触发：
+  - 部署到开发环境
+  - 集成测试
+
+- 发布新版本触发：
+  - 部署到生产环境
+  - 性能测试
+
+### 2. 监控和告警
+
+- CloudWatch指标监控
+- 错误率告警
+- 性能监控
+- 成本监控
+
+## 发布流程
+
+### 1. 版本管理
+
+使用语义化版本：
+- 主版本号：不兼容的API修改
+- 次版本号：向下兼容的功能性新增
+- 修订号：向下兼容的问题修正
+
+### 2. 发布步骤
+
+1. 创建发布分支
+```bash
+git checkout -b release/v1.0.0 develop
+```
+
+2. 更新版本号
+```bash
+poetry version 1.0.0
+```
+
+3. 更新CHANGELOG.md
+
+4. 提交更改
+```bash
+git commit -m "chore(release): v1.0.0"
+```
+
+5. 合并到main和develop
+```bash
+git checkout main
+git merge release/v1.0.0
+git tag v1.0.0
+git push origin main --tags
+
+git checkout develop
+git merge release/v1.0.0
+git push origin develop
+```
+
+## 问题处理流程
+
+### 1. 问题报告
+
+在GitHub Issues中创建问题，包含：
+- 问题描述
+- 复现步骤
+- 期望结果
+- 实际结果
+- 环境信息
+
+### 2. 问题修复
+
+1. 创建修复分支
+```bash
+git checkout -b bugfix/issue-number
+```
+
+2. 修复并测试
+
+3. 提交修复
+```bash
+git commit -m "fix(component): issue description (#issue-number)"
+```
+
+4. 创建Pull Request
+
+### 3. 紧急修复
+
+1. 从main创建hotfix分支
+```bash
+git checkout -b hotfix/critical-fix main
+```
+
+2. 修复问题
+
+3. 合并到main和develop
+```bash
+git checkout main
+git merge hotfix/critical-fix
+git tag v1.0.1
+
+git checkout develop
+git merge hotfix/critical-fix
+``` 
