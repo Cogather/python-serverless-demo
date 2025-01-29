@@ -1,82 +1,96 @@
-name: Python CI
+name: CI/CD Pipeline
 
 on:
-  push:
-    branches: [ main ]
+  # 功能分支和PR触发CI
   pull_request:
     branches: [ main ]
-  workflow_dispatch:
+    paths-ignore:
+      - 'docs/**'
+      - '**.md'
+  
+  # main分支触发部署到预发布环境
+  push:
+    branches: [ main ]
+    paths-ignore:
+      - 'docs/**'
+      - '**.md'
 
 jobs:
   test:
+    name: 测试和代码检查
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        python-version: ["3.10"]
-
     steps:
-    - uses: actions/checkout@v3
-    
-    - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v4
-      with:
-        python-version: ${{ matrix.python-version }}
-    
-    - name: Install Poetry
-      run: |
-        curl -sSL https://install.python-poetry.org | python3 -
-    
-    - name: Configure Poetry
-      run: |
-        poetry config virtualenvs.create true
-        poetry config virtualenvs.in-project true
-    
-    - name: Install dependencies
-      run: |
-        poetry install
-    
-    - name: Check code formatting with Black
-      run: |
-        poetry run black src --check
-    
-    - name: Lint with flake8
-      run: |
-        # 检查严重错误
-        poetry run flake8 src --count --select=E9,F63,F7,F82 --show-source --statistics
-        # 检查代码风格
-        poetry run flake8 src --count --exit-zero --max-complexity=10 --max-line-length=88 --statistics
-    
-    - name: Run tests with pytest
-      run: |
-        poetry run pytest -v --junitxml=test-results.xml
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-    
-    - name: Upload test results
-      uses: actions/upload-artifact@v3
-      with:
-        name: test-results
-        path: test-results.xml
-      if: always()
+      - uses: actions/checkout@v3
+      
+      - name: 设置Python环境
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.10"
+      
+      - name: 安装依赖
+        run: |
+          curl -sSL https://install.python-poetry.org | python3 -
+          poetry install
+      
+      - name: 代码检查
+        run: |
+          poetry run black src --check
+          poetry run flake8 src
+      
+      - name: 运行测试
+        run: poetry run pytest -v --junitxml=test-results.xml
 
-  docker:
-    runs-on: ubuntu-latest
+  build:
+    name: 构建Docker镜像
     needs: test
+    runs-on: ubuntu-latest
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     steps:
-    - uses: actions/checkout@v3
+      - uses: actions/checkout@v3
+      
+      - name: 登录Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      
+      - name: 构建并推送镜像
+        uses: docker/build-push-action@v4
+        with:
+          context: .
+          push: true
+          tags: |
+            ${{ secrets.DOCKERHUB_USERNAME }}/python-serverless-demo:latest
+            ${{ secrets.DOCKERHUB_USERNAME }}/python-serverless-demo:${{ github.sha }}
 
-    - name: Log in to Docker Hub
-      uses: docker/login-action@v2
-      with:
-        username: ${{ secrets.DOCKERHUB_USERNAME }}
-        password: ${{ secrets.DOCKERHUB_TOKEN }}
-
-    - name: Build and push Docker image
-      uses: docker/build-push-action@v4
-      with:
-        context: .
-        push: true
-        tags: |
-          ${{ secrets.DOCKERHUB_USERNAME }}/python-serverless-demo:latest
-          ${{ secrets.DOCKERHUB_USERNAME }}/python-serverless-demo:${{ github.sha }} 
+  deploy:
+    name: 部署到预发环境
+    needs: build
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    environment:
+      name: staging
+      url: http://${{ secrets.TENCENT_HOST }}:8000
+    steps:
+      - name: 部署到腾讯云
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.TENCENT_HOST }}
+          username: ${{ secrets.TENCENT_USERNAME }}
+          key: ${{ secrets.TENCENT_SSH_KEY }}
+          script: |
+            # 拉取最新镜像
+            docker pull ${{ secrets.DOCKERHUB_USERNAME }}/python-serverless-demo:${{ github.sha }}
+            
+            # 停止并删除旧容器
+            docker stop python-demo || true
+            docker rm python-demo || true
+            
+            # 启动新容器
+            docker run -d --name python-demo \
+              -p 8000:8000 \
+              --restart unless-stopped \
+              ${{ secrets.DOCKERHUB_USERNAME }}/python-serverless-demo:${{ github.sha }}
+            
+            # 清理旧镜像
+            docker image prune -f 

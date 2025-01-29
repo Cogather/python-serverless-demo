@@ -120,6 +120,47 @@ poetry run flake8
 docker ps
 ```
 
+## Docker 环境发布
+
+### 1. Docker 镜像构建
+
+本项目使用 Docker 进行容器化部署。镜像构建基于 Python 3.10 slim 版本，主要包含以下内容：
+- Python 3.10 运行环境
+- Poetry 包管理工具
+- 项目源代码和依赖
+- FastAPI 应用服务
+
+构建镜像：
+```bash
+docker build -t python-serverless-demo .
+```
+
+### 2. 镜像发布流程
+
+项目通过 GitHub Actions 自动化发布 Docker 镜像到 Docker Hub：
+- 当代码合并到 main 分支时自动触发
+- 生成两个版本的标签：
+  - latest: 最新版本
+  - commit-hash: 对应提交的版本
+
+### 3. 本地运行 Docker 容器
+
+```bash
+# 运行容器
+docker run -p 8000:8000 python-serverless-demo
+
+# 后台运行
+docker run -d -p 8000:8000 python-serverless-demo
+```
+
+容器启动后，可以通过 http://localhost:8000 访问服务。
+
+### 4. Docker 相关文件
+
+- `Dockerfile`: 定义镜像构建步骤
+- `.dockerignore`: 排除不需要的文件
+- `.github/workflows/python-ci.yml`: CI/CD 配置，包含 Docker 发布流程
+
 ## 常见问题
 
 1. 如果安装 Docker 时遇到 WSL 2 相关错误：
