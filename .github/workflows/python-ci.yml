@@ -4,16 +4,10 @@ on:
   # 功能分支和PR触发CI
   pull_request:
     branches: [ main ]
-    paths-ignore:
-      - 'docs/**'
-      - '**.md'
   
   # main分支触发部署到预发布环境
   push:
     branches: [ main ]
-    paths-ignore:
-      - 'docs/**'
-      - '**.md'
 
 jobs:
   test:
@@ -69,8 +63,8 @@ jobs:
     runs-on: ubuntu-latest
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     environment:
-      name: staging
-      url: http://${{ secrets.TENCENT_HOST }}:8000
+      name: production
+      url: ${{ format('http://{0}:8000', secrets.TENCENT_HOST) }}
     steps:
       - name: 部署到腾讯云
         uses: appleboy/ssh-action@master
