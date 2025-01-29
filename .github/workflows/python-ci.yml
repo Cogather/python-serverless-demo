@@ -62,9 +62,6 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    environment:
-      name: production
-      url: http://staging.example.com:8000
     steps:
       - name: 部署到腾讯云
         uses: appleboy/ssh-action@master
