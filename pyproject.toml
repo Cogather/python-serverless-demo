@@ -19,6 +19,7 @@ fastapi = "^0.109.0"
 mangum = "^0.17.0"
 uvicorn = "^0.27.0"
 pydantic = "^2.5.3"
+paramiko = "^3.5.0"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^7.4"
@@ -35,3 +36,7 @@ build-backend = "poetry.core.masonry.api"
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 python_files = ["test_*.py"]
+
+[tool.flake8]
+max-line-length = 88
+extend-ignore = "E203"  # 忽略E203警告，因为它与black的格式化冲突

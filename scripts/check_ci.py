@@ -20,7 +20,7 @@ from requests.exceptions import (
 
 # 配置日志
 logging.basicConfig(
-    level=logging.INFO,
+    level=logging.DEBUG,
     format="%(asctime)s - %(levelname)s - %(message)s",
     datefmt="%Y-%m-%d %H:%M:%S",
 )
@@ -33,9 +33,12 @@ def load_config() -> Dict[str, Any]:
         os.path.dirname(os.path.dirname(__file__)),
         "config.local.json"
     )
+    logger.debug("尝试加载配置文件: %s", config_path)
     try:
         with open(config_path, "r", encoding="utf-8") as f:
-            return json.load(f)
+            config = json.load(f)
+            logger.debug("成功加载配置: %s", config)
+            return config
     except FileNotFoundError:
         logger.error("配置文件未找到: %s", config_path)
         sys.exit(1)
@@ -48,7 +51,10 @@ def get_latest_workflow_run(config: Dict[str, Any]) -> int:
     """获取最新的工作流运行"""
     token = config["github"]["token"]
     repo = config["github"]["repository"]
-    api_url = f"https://api.github.com/repos/{repo}/actions/runs"
+    # 添加branch参数来过滤main分支的运行记录
+    api_url = f"https://api.github.com/repos/{repo}/actions/runs?branch=main"
+    
+    logger.debug("请求GitHub API: %s", api_url)
 
     headers = {
         "Authorization": f"Bearer {token}",
@@ -57,14 +63,20 @@ def get_latest_workflow_run(config: Dict[str, Any]) -> int:
 
     try:
         response = requests.get(api_url, headers=headers, timeout=30)
+        logger.debug("API响应状态码: %d", response.status_code)
         response.raise_for_status()
         runs = response.json()
+        
+        logger.debug("获取到工作流运行数据: %s", runs)
 
         if not runs["workflow_runs"]:
-            logger.error("没有找到任何工作流运行记录")
+            logger.error("没有找到main分支的工作流运行记录")
             sys.exit(1)
 
         latest_run = runs["workflow_runs"][0]
+        logger.info("最新工作流运行ID: %d", latest_run["id"])
+        logger.info(f"分支: {latest_run['head_branch']}")
+        logger.info(f"提交: {latest_run['head_sha'][:7]}")
         return latest_run["id"]
 
     except Timeout:
@@ -163,14 +175,27 @@ def print_job_info(jobs_data: Dict[str, Any]) -> None:
 
 
 if __name__ == "__main__":
+    print("开始检查CI状态...")
     try:
+        print("正在加载配置...")
         config = load_config()
+        print("配置加载成功:", config)
+        
+        print("正在获取最新工作流运行...")
         run_id = get_latest_workflow_run(config)
+        print(f"获取到运行ID: {run_id}")
+        
+        print("正在获取作业详情...")
         jobs_data = get_workflow_jobs(config, run_id)
+        print("正在打印作业信息...")
         print_job_info(jobs_data)
     except KeyboardInterrupt:
-        logger.info("操作已取消")
+        print("操作已取消")
         sys.exit(0)
     except Exception as e:
-        logger.error("程序执行出错: %s", str(e))
+        print(f"错误类型: {type(e).__name__}")
+        print(f"错误信息: {str(e)}")
+        print("错误详情:", file=sys.stderr)
+        import traceback
+        traceback.print_exc()
         sys.exit(1)

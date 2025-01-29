@@ -68,8 +68,11 @@ jobs:
         with:
           host: ${{ secrets.TENCENT_HOST }}
           username: ${{ secrets.TENCENT_USERNAME }}
-          key: ${{ secrets.TENCENT_SSH_KEY }}
+          password: ${{ secrets.TENCENT_PASSWORD }}
           script: |
+            # 登录Docker Hub
+            echo "${{ secrets.DOCKERHUB_TOKEN }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
+            
             # 拉取最新镜像
             docker pull ${{ secrets.DOCKERHUB_USERNAME }}/python-serverless-demo:${{ github.sha }}
             
