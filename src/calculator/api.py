@@ -108,3 +108,5 @@ async def health_check() -> Dict[str, str]:
 
 # AWS Lambda处理器
 handler = Mangum(app)
+
+# 测试CI触发
