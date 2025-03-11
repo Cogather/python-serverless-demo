@@ -84,6 +84,46 @@ def get_latest_workflow_run(config: Dict[str, Any]) -> int:
         logger.error("未预期的错误: %s", str(e))
         sys.exit(1)
 
+def get_latest_workflow_run2(config: Dict[str, Any]) -> int:
+    """获取最新的工作流运行"""
+    token = config["github"]["token"]
+    repo = config["github"]["repository"]
+    api_url = f"https://api.github.com/repos/{repo}/actions/runs"
+
+    headers = {
+        "Authorization": f"Bearer {token}",
+        "Accept": "application/vnd.github.v3+json",
+    }
+
+    try:
+        response = requests.get(api_url, headers=headers, timeout=30)
+        response.raise_for_status()
+        runs = response.json()
+
+        if not runs["workflow_runs"]:
+            logger.error("没有找到任何工作流运行记录")
+            sys.exit(1)
+
+        latest_run = runs["workflow_runs"][0]
+        return latest_run["id"]
+
+    except Timeout:
+        logger.error("请求超时，请检查网络连接")
+        sys.exit(1)
+    except ConnectionError:
+        logger.error("网络连接错误，请检查网络状态")
+        sys.exit(1)
+    except HTTPError as e:
+        logger.error("HTTP请求失败 (状态码: %d)", e.response.status_code)
+        logger.debug("响应内容: %s", e.response.text)
+        sys.exit(1)
+    except RequestException as e:
+        logger.error("请求异常: %s", str(e))
+        sys.exit(1)
+    except Exception as e:
+        logger.error("未预期的错误: %s", str(e))
+        sys.exit(1)
+
 
 def get_workflow_jobs(config: Dict[str, Any], run_id: int) -> Dict[str, Any]:
     """获取工作流作业的详细信息"""
